@@ -416,8 +416,10 @@
    - 视频 → type=6
    - 文件 → type=3
    - 手写签名 → type=21
-7. **单选/多选字段选项命名规则**（重要）：
-   - 当 `type` 为 `"1"`（单选）或 `"2"`（多选）时，**必须使用 `options` 字段**，不是 `infoOptions`
-   - 其他类型（如矩阵题等）使用 `infoOptions` 字段
-   - 示例：`{"type": "1", "title": "选择题", "options": [{"title": "选项 A"}, {"title": "选项 B"}]}`
-   - 错误示例：`{"type": "1", "title": "选择题", "infoOptions": [...]}` 会导致 API 报错"选项不能少于 2 个"
+7. **单选/多选字段选项格式**（⚠️ 非常重要）：
+   - 当 `type` 为 `"1"`（单选）或 `"2"`（多选）时，**必须使用 `options` 字段**
+   - **`options` 必须是字符串数组（arrayOfString），不是对象数组！**
+   - ✅ 正确格式：`{"type": "1", "title": "选择题", "options": ["选项 A", "选项 B", "选项 C"]}`
+   - ❌ 错误格式 1：`{"type": "1", "title": "选择题", "options": [{"title": "选项 A"}, {"title": "选项 B"}]}`（对象数组，选项会丢失）
+   - ❌ 错误格式 2：`{"type": "1", "title": "选择题", "infoOptions": [...]}`（字段名错误，会报错"选项不能少于 2 个"）
+   - 其他类型（如矩阵题 type=17/18）使用 `infoOptions` 或 `questionOptions` 字段
