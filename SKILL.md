@@ -399,8 +399,45 @@ miaoying create [options]
 - `--anonymous` - 匿名填写
 - `--qrcode` - 创建后自动生成二维码
 - `--app <应用名>` - 应用名（qingtongji/huiyuan，默认 qingtongji）
+- `--config <配置文件>` - 从 JSON 配置文件加载选项（支持更多字段如 pictures, cover 等）
 
-**2. 创建预约**
+**2. 更新统计**
+
+```bash
+miaoying update [options]
+```
+
+选项:
+- `--id <ID>` - 统计 ID（必需）
+- `--title <标题>` - 统计标题
+- `--desc <描述>` - 统计描述
+- `--info-forms <JSON>` - 表单字段（JSON 数组格式）
+- `--count <数量>` - 人数限制
+- `--end-time <日期>` - 结束时间（ISO 格式）
+- `--anonymous` - 匿名填写
+- `--close <true/false>` - 关闭/开启统计
+- `--repeat <true/false>` - 允许重复打卡
+- `--config <配置文件>` - 从 JSON 配置文件加载选项（推荐用于复杂更新，如添加图片、封面等）
+
+**配置文件示例 (update-config.json)：**
+```json
+{
+  "id": "69c382a2e92fdf45795e90c1",
+  "title": "健康体检计划登记",
+  "pictures": ["xxx.png"],
+  "cover": "xxx.png",
+  "infoForms": [
+    {"type": "0", "title": "姓名", "required": true}
+  ]
+}
+```
+
+使用配置文件更新：
+```bash
+miaoying update --config ./update-config.json
+```
+
+**3. 创建预约**
 
 ```bash
 miaoying book [options]
