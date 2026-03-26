@@ -184,7 +184,7 @@ digraph miaoying_workflow {
 
 ```bash
 # 安装 CLI 工具
-npm install -g miaoying
+npm install -g @miaoying-ai/miaoying-cli
 
 # 设置 API Key
 export MIAOYING_API_KEY="your_api_key_here"
