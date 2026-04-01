@@ -2,7 +2,7 @@
 name: 秒应
 description: 使用秒应开放接口创建活动时，包括打卡、接龙、投票、信息收集、预约、考试、查查等场景，需要 API 密钥设置、AI 配置表单和生成二维码分享
 
-# Credential requirements
+# Credential requirements (⚠️ REQUIRED - 本技能必须配置 API Key)
 credentials:
   - name: MIAOYING_API_KEY
     description: 秒应 OpenAPI 密钥，用于创建活动、生成二维码等操作
@@ -13,11 +13,12 @@ credentials:
       - creator:read
       - creator:export
 
-# Required environment variables
+# Required environment variables (⚠️ REQUIRED)
 env:
   MIAOYING_API_KEY:
-    description: 秒应 API 密钥
+    description: 秒应 API 密钥（必需 - 未配置将无法使用本技能）
     required: true
+    security_note: 推荐使用环境变量存储，避免在聊天会话中直接粘贴
 
 # Required binaries/tools
 binaries:
@@ -47,9 +48,16 @@ file_access:
       description: 保存生成的二维码图片
 
 # Network access
+# 📋 域名说明：秒应服务使用多个域名，各司其职
+# - miaoying.hui51.cn: 用户管理后台、API Key 管理、账户设置
+# - www.aiphoto8.cn: OpenAPI 服务器（实际的 API 调用端点）
 network:
+  - host: miaoying.hui51.cn
+    description: 秒应用户管理后台（获取 API Key、管理账户）
+    endpoints:
+      - /apikey
   - host: www.aiphoto8.cn
-    description: 秒应 API 服务器
+    description: 秒应 OpenAPI 服务器（实际 API 调用）
     endpoints:
       - /api/openapi/graphql
       - /api/openapi/creator/qrcode
@@ -63,6 +71,8 @@ network:
 
 ## 🔐 凭证与安全说明
 
+**⚠️ 重要：本技能需要 API Key 才能使用**
+
 **本技能需要以下凭证和权限：**
 
 | 类型 | 名称 | 用途 | 获取方式 |
@@ -74,11 +84,57 @@ network:
 - 读取/写入：`~/.miaoying/config.json`（本地配置存储）
 - 写入：`./qrcodes/*.png`、`./qrcodes/*.jpeg`（二维码图片）
 
-**安全最佳实践：**
-1. ✅ 推荐使用环境变量存储 API Key：`export MIAOYING_API_KEY="your_key"`
-2. ✅ 使用最小权限原则创建 API Key（仅勾选必要权限）
-3. ❌ 避免在聊天会话中直接粘贴长期密钥
-4. ❌ 避免将 API Key 提交到代码仓库
+**网络访问：**
+- `miaoying.hui51.cn` - 用户管理后台（获取 API Key）
+- `www.aiphoto8.cn` - API 服务器（实际调用）
+
+### 🛡️ 安全最佳实践
+
+1. ✅ **使用环境变量存储 API Key**
+   ```bash
+   export MIAOYING_API_KEY="your_key_here"
+   # 添加到 ~/.zshrc 或 ~/.bashrc 实现持久化
+   ```
+
+2. ✅ **使用最小权限原则创建 API Key**
+   - 仅勾选必要的权限（创建活动、读取数据、导出数据）
+   - 避免创建具有不必要权限的长期密钥
+
+3. ❌ **避免在聊天会话中直接粘贴长期密钥**
+   - 如果不小心泄露，请立即在管理后台删除并重新创建
+
+4. ❌ **避免将 API Key 提交到代码仓库**
+   - 确保 `.gitignore` 包含 `~/.miaoying/config.json`
+
+### 📦 NPM 包验证
+
+在安装 `@miaoying-ai/miaoying-cli` 之前，建议验证包的真实性：
+
+```bash
+# 查看包信息
+npm view @miaoying-ai/miaoying-cli
+
+# 检查包的仓库地址
+npm view @miaoying-ai/miaoying-cli repository
+
+# 查看包的维护者
+npm view @miaoying-ai/miaoying-cli maintainers
+```
+
+**预期结果：**
+- 包名应为 `@miaoying-ai/miaoying-cli`
+- 仓库应指向官方 GitHub 仓库
+- 维护者应为秒应团队
+
+### ⚠️ 使用前检查清单
+
+在首次使用本技能前，请确认：
+
+- [ ] 已从官方渠道 [miaoying.hui51.cn/apikey](https://miaoying.hui51.cn/apikey) 获取 API Key
+- [ ] 已验证 npm 包 `@miaoying-ai/miaoying-cli` 的来源
+- [ ] 已使用环境变量存储 API Key（而非直接粘贴）
+- [ ] 了解本技能会访问 `~/.miaoying/config.json` 和 `./qrcodes/` 目录
+- [ ] 了解 API 调用会发送到 `www.aiphoto8.cn`
 
 ## ⚠️ 重要前置提醒 (AI 必读)
 
@@ -254,48 +310,44 @@ digraph miaoying_workflow {
 **对于终端用户：**
 
 ```bash
-# 安装 CLI 工具
+# 🔒 步骤 1: 验证 npm 包（推荐）
+npm view @miaoying-ai/miaoying-cli
+# 确认包名、版本、仓库地址正确
+
+# 步骤 2: 安装 CLI 工具
 npm install -g @miaoying-ai/miaoying-cli
 
-# 设置 API Key
+# 步骤 3: 设置 API Key（使用环境变量）
 export MIAOYING_API_KEY="your_api_key_here"
 
-# 创建统计并生成二维码
+# 步骤 4: 创建统计并生成二维码
 miaoying create --title "每日打卡" --desc "请完成每日打卡" --qrcode
 
 # 查看帮助
 miaoying help
 ```
 
-**本地开发/测试：**
-
-```bash
-# 在 api 目录下链接本地包
-cd miaoying-cli && npm link
-
-# 或者直接运行
-miaoying help
-```
 
 ### Step 1: API Key Setup
 
 **If user doesn't have an API key:**
 
-1. 引用用户访问 API Key 管理页面 (https://miaoying.hui51.cn/apikey)
+1. 引导用户访问 **官方** API Key 管理页面：https://miaoying.hui51.cn/apikey
 2. 引导用户创建新的 API Key，权限范围按需勾选：
    - 创建活动 (creator:create) — 用于创建统计活动
    - 读取活动数据 (creator:read) — 用于读取数据、生成二维码
    - 导出数据 (creator:export) — 用于导出数据
 
-**After obtaining the key:** 3. Guide user to store the key **securely** (recommended methods):
+**After obtaining the key:** Guide user to store the key **securely** (recommended methods):
 
 - **Environment variable (推荐)**: `export MIAOYING_API_KEY="your_key_here"` (add to `~/.zshrc` or `~/.bashrc` for persistence)
-- **Configuration file**: `~/.miaoying/config.json`
+- **Configuration file**: `~/.miaoying/config.json` (注意：此文件可能包含敏感信息，确保不被提交到版本控制)
 
 **⚠️ 安全提醒：**
 - **切勿在聊天会话中直接粘贴长期有效的 API Key**
 - 建议使用环境变量方式存储，避免密钥泄露
 - 如需临时测试，请使用权限受限的短期密钥
+- 如果密钥意外泄露，立即在管理后台删除并重新创建
 
 **Load the stored key:**
 
@@ -303,6 +355,14 @@ miaoying help
 // Read from environment or config
 const apiKey = process.env.MIAOYING_API_KEY || loadFromConfig();
 ```
+
+**🔒 域名说明：**
+
+秒应服务使用多个域名，请注意区分：
+- `miaoying.hui51.cn` - 用户管理后台、API Key 管理
+- `www.aiphoto8.cn` - API 调用服务器
+
+这是正常的多域名架构，`hui51.cn` 用于用户界面，`aiphoto8.cn` 用于 API 服务。
 
 ### Step 2: Determine Activity Type & Form Configuration
 
