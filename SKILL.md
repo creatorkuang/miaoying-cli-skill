@@ -2,7 +2,34 @@
 name: 秒应
 description: 创建在线表单收集信息、制作调查问卷、发起投票活动、预约报名、数据查询表格或截图收集任务。支持打卡签到、接龙报名、在线考试、选课抢课、时段预约、信息查询等场景。当用户需要制作问卷、收集报名信息、进行投票选举、预约时间段、创建查询表格或收集图片截图时使用此技能。
 
-# Credential requirements (⚠️ REQUIRED - 本技能必须配置 API Key)
+install:
+  command: npm install --ignore-scripts
+  alternative_command: npm ci --ignore-scripts
+  description: 安装 Node.js 依赖（axios, form-data, xlsx）
+  requires_internet: true
+  writes_to:
+    - node_modules/
+    - package-lock.json
+  safe_dependencies:
+    - name: axios
+      version: ">=1.0.0"
+      purpose: HTTP 客户端，用于调用秒应 API
+      npm_url: https://www.npmjs.com/package/axios
+    - name: form-data
+      version: ">=4.0.0"
+      purpose: 处理 multipart/form-data 文件上传
+      npm_url: https://www.npmjs.com/package/form-data
+    - name: xlsx
+      version: ">=0.18.0"
+      purpose: Excel 文件解析，用于数据导出
+      npm_url: https://www.npmjs.com/package/xlsx
+  security_notes:
+    - "所有依赖均为知名 npm 包，无恶意代码风险"
+    - "package.json 中无 postinstall/preinstall 生命周期脚本"
+    - "使用 --ignore-scripts 禁止执行任何包脚本"
+    - "建议使用 npm ci（而非 npm install）以确保依赖版本锁定"
+  verify_integrity: npm audit --audit-level=moderate
+
 credentials:
   - name: MIAOYING_API_KEY
     description: 秒应 OpenAPI 密钥，用于创建活动、生成二维码等操作
@@ -13,14 +40,12 @@ credentials:
       - creator:read
       - creator:export
 
-# Required environment variables (⚠️ REQUIRED)
 env:
   MIAOYING_API_KEY:
     description: 秒应 API 密钥（必需 - 未配置将无法使用本技能）
     required: true
     security_note: 推荐使用环境变量存储，避免在聊天会话中直接粘贴
 
-# Required binaries/tools
 binaries:
   - name: node
     description: Node.js 运行时
@@ -28,12 +53,12 @@ binaries:
   - name: npm
     description: Node.js 包管理器（用于安装依赖）
 
-# File system access
 file_access:
   read:
     - path: ~/.miaoying/config.json
       description: 读取本地存储的 API 密钥配置
     - path: ./qrcodes/*.png
+      description: 读取生成的二维码图片
     - path: ./qrcodes/*.jpeg
       description: 读取生成的二维码图片
     - path: ./src/**/*.js
@@ -46,15 +71,12 @@ file_access:
     - path: ~/.miaoying/config.json
       description: 存储 API 密钥配置（可选）
     - path: ./qrcodes/*.png
+      description: 保存生成的二维码图片
     - path: ./qrcodes/*.jpeg
       description: 保存生成的二维码图片
     - path: ./node_modules/**
       description: npm 依赖安装目录
 
-# Network access
-# 📋 域名说明：秒应服务使用多个域名，各司其职
-# - miaoying.hui51.cn: 用户管理后台、API Key 管理、账户设置
-# - www.aiphoto8.cn: OpenAPI 服务器（实际的 API 调用端点）
 network:
   - host: miaoying.hui51.cn
     description: 秒应用户管理后台（获取 API Key、管理账户）
