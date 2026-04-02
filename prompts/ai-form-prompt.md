@@ -51,7 +51,7 @@
 | 字段 | 类型 | 说明 | 触发关键词 |
 |------|------|------|------------|
 | `fixedNo` | boolean | 是否固定序号 | 名单、学号、工号 |
-| `showNameList` | boolean | 是否导入名单 | 需要名单、名单导入 |
+| `showNameList` | boolean | 是否导入名单（启用后无需在infoForms中添加姓名字段） | 需要名单、名单导入 |
 | `nameList` | array | 名单数组 | 提供名单内容 |
 
 ```javascript
