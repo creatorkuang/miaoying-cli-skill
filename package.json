@@ -1,0 +1,38 @@
+{
+  "name": "@miaoying-ai/miaoying-cli",
+  "version": "1.0.0",
+  "description": "秒应 CLI 工具 - 创建统计、投票、预约、考试、查查并导出数据",
+  "main": "src/index.js",
+  "bin": {
+    "miaoying": "./bin/miaoying.js"
+  },
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "miaoying",
+    "cli",
+    "statistics",
+    "voting",
+    "booking"
+  ],
+  "author": "积致科技（北京）有限公司",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.13.6",
+    "form-data": "^4.0.5",
+    "xlsx": "^0.18.5"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/creatorkuang/miaoying-cli-skill.git"
+  },
+  "bugs": {
+    "url": "https://github.com/creatorkuang/miaoying-cli-skill/issues"
+  },
+  "homepage": "https://github.com/creatorkuang/miaoying-cli-skill#readme"
+}

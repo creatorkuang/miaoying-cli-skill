@@ -1,6 +1,6 @@
 ---
 name: 秒应
-description: 使用秒应开放接口创建活动时，包括打卡、接龙、投票、信息收集、预约、考试、查查等场景，需要 API 密钥设置、AI 配置表单和生成二维码分享
+description: 创建在线表单收集信息、制作调查问卷、发起投票活动、预约报名、数据查询表格或截图收集任务。支持打卡签到、接龙报名、在线考试、选课抢课、时段预约、信息查询等场景。当用户需要制作问卷、收集报名信息、进行投票选举、预约时间段、创建查询表格或收集图片截图时使用此技能。
 
 # Credential requirements (⚠️ REQUIRED - 本技能必须配置 API Key)
 credentials:
@@ -26,11 +26,7 @@ binaries:
     description: Node.js 运行时
     version: ">=16.0.0"
   - name: npm
-    description: Node.js 包管理器
-  - name: miaoying
-    description: 秒应 CLI 工具
-    install: npm install -g @miaoying-ai/miaoying-cli
-    npm_package: "@miaoying-ai/miaoying-cli"
+    description: Node.js 包管理器（用于安装依赖）
 
 # File system access
 file_access:
@@ -38,14 +34,22 @@ file_access:
     - path: ~/.miaoying/config.json
       description: 读取本地存储的 API 密钥配置
     - path: ./qrcodes/*.png
-      - path: ./qrcodes/*.jpeg
+    - path: ./qrcodes/*.jpeg
       description: 读取生成的二维码图片
+    - path: ./src/**/*.js
+      description: CLI 源代码（本地直接使用）
+    - path: ./bin/miaoying.js
+      description: CLI 入口文件
+    - path: ./package.json
+      description: 依赖配置文件
   write:
     - path: ~/.miaoying/config.json
       description: 存储 API 密钥配置（可选）
     - path: ./qrcodes/*.png
     - path: ./qrcodes/*.jpeg
       description: 保存生成的二维码图片
+    - path: ./node_modules/**
+      description: npm 依赖安装目录
 
 # Network access
 # 📋 域名说明：秒应服务使用多个域名，各司其职
@@ -78,7 +82,7 @@ network:
 | 类型 | 名称 | 用途 | 获取方式 |
 |------|------|------|----------|
 | API Key | `MIAOYING_API_KEY` | 调用秒应 OpenAPI | [API Key 管理页面](https://miaoying.hui51.cn/apikey) |
-| npm 包 | `@miaoying-ai/miaoying-cli` | CLI 工具 | `npm install -g @miaoying-ai/miaoying-cli` |
+| 本地 CLI | `./bin/miaoying.js` | CLI 工具 | 技能自带，无需安装 |
 
 **文件访问：**
 - 读取/写入：`~/.miaoying/config.json`（本地配置存储）
@@ -106,32 +110,34 @@ network:
 4. ❌ **避免将 API Key 提交到代码仓库**
    - 确保 `.gitignore` 包含 `~/.miaoying/config.json`
 
-### 📦 NPM 包验证
+### 📦 CLI 安装（本地源码）
 
-在安装 `@miaoying-ai/miaoying-cli` 之前，建议验证包的真实性：
+本技能自带 CLI 源码，无需安装 npm 包。首次使用前需安装依赖：
 
 ```bash
-# 查看包信息
-npm view @miaoying-ai/miaoying-cli
+# 进入技能目录
+cd /path/to/miaoying-skill
 
-# 检查包的仓库地址
-npm view @miaoying-ai/miaoying-cli repository
-
-# 查看包的维护者
-npm view @miaoying-ai/miaoying-cli maintainers
+# 安装依赖
+npm install
 ```
 
-**预期结果：**
-- 包名应为 `@miaoying-ai/miaoying-cli`
-- 仓库应指向官方 GitHub 仓库
-- 维护者应为秒应团队
+**使用方式：**
+
+```bash
+# 直接运行本地 CLI
+node ./bin/miaoying.js help
+
+# 或者使用 npx
+npx ./bin/miaoying.js help
+```
 
 ### ⚠️ 使用前检查清单
 
 在首次使用本技能前，请确认：
 
 - [ ] 已从官方渠道 [miaoying.hui51.cn/apikey](https://miaoying.hui51.cn/apikey) 获取 API Key
-- [ ] 已验证 npm 包 `@miaoying-ai/miaoying-cli` 的来源
+- [ ] 已在技能目录运行 `npm install` 安装依赖
 - [ ] 已使用环境变量存储 API Key（而非直接粘贴）
 - [ ] 了解本技能会访问 `~/.miaoying/config.json` 和 `./qrcodes/` 目录
 - [ ] 了解 API 调用会发送到 `www.aiphoto8.cn`
@@ -195,11 +201,12 @@ Read(file_path="/完整/路径/qrcodes/tongji_XXX.jpeg")
 
 **不要只说"二维码已生成（见上图/附件）"但不实际展示图片！**
 
-## 📞 客服联系
+## 📞 客服联系与反馈
 
-如果遇到问题，可以通过以下方式联系我们：
+如果遇到问题或有建议，可以通过以下方式联系我们：
 
 - **微信搜索「秒应服务」** - 关注服务号后联系我们
+- **GitHub Issues** - 在 [miaoying-cli-skill/issues](https://github.com/creatorkuang/miaoying-cli-skill/issues) 中提交问题或建议
 
 ## 适用场景 (When to Use)
 
@@ -302,29 +309,28 @@ digraph miaoying_workflow {
 
 **对于 AI 助手：**
 
-1. **优先使用 CLI 工具** - 如果用户有 Node.js 环境，直接使用 `miaoying` CLI 命令
-2. **使用 miaoying-cli 包** - 所有 API 封装已迁移到 miaoying-cli 包中
-3. **参考代码示例** - 使用现有的测试脚本作为模板
+1. **使用本地 CLI 工具** - 本技能自带 CLI 源码，直接运行 `node ./bin/miaoying.js`
+2. **首次使用前安装依赖** - 在技能目录运行 `npm install`
+3. **参考代码示例** - 源码在 `./src/` 目录
 4. **📱 创建成功后** - 展示二维码图片，提醒用户微信扫码分享到微信群
 
 **对于终端用户：**
 
 ```bash
-# 🔒 步骤 1: 验证 npm 包（推荐）
-npm view @miaoying-ai/miaoying-cli
-# 确认包名、版本、仓库地址正确
+# 步骤 1: 进入技能目录
+cd /path/to/miaoying-skill
 
-# 步骤 2: 安装 CLI 工具
-npm install -g @miaoying-ai/miaoying-cli
+# 步骤 2: 安装依赖（首次使用）
+npm install
 
 # 步骤 3: 设置 API Key（使用环境变量）
 export MIAOYING_API_KEY="your_api_key_here"
 
 # 步骤 4: 创建统计并生成二维码
-miaoying create --title "每日打卡" --desc "请完成每日打卡" --qrcode
+node ./bin/miaoying.js create --title "每日打卡" --desc "请完成每日打卡" --qrcode
 
 # 查看帮助
-miaoying help
+node ./bin/miaoying.js help
 ```
 
 
@@ -395,16 +401,13 @@ const apiKey = process.env.MIAOYING_API_KEY || loadFromConfig();
 
 **第二步：使用 CLI 创建活动**
 
-使用 `miaoying` CLI 命令直接创建活动。
+使用本地 CLI 命令直接创建活动。
 
-**完整工作流示例（使用 miaoying-cli）：**
+**完整工作流示例（使用本地源码）：**
 
 ```javascript
-// 使用 npm 包方式
-import { createTongji, generateQrCode } from "miaoying";
-
-// 或者直接引入
-import { createTongji, generateQrCode } from "./miaoying-cli/src/index.js";
+// 直接引入本地源码
+import { createTongji, generateQrCode } from "./src/index.js";
 
 // 创建统计
 const tongjiId = await createTongji({
@@ -424,7 +427,7 @@ console.log("📱 二维码已保存:", qrcodePath);
 **如果需要单独保存二维码：**
 
 ```javascript
-import { generateQrCode } from "miaoying";
+import { generateQrCode } from "./src/index.js";
 
 // 生成并保存二维码
 const qrcodePath = await generateQrCode(tongjiId, {
@@ -441,10 +444,10 @@ const qrcodePath = await generateQrCode(tongjiId, {
 
 ```bash
 # 使用配置文件
-miaoying create --config ./my-config.json
+node ./bin/miaoying.js create --config ./my-config.json
 
 # CLI 参数覆盖配置文件
-miaoying create --config ./my-config.json --title "覆盖标题"
+node ./bin/miaoying.js create --config ./my-config.json --title "覆盖标题"
 ```
 
 **配置文件示例 (config.json)：**
@@ -485,13 +488,13 @@ miaoying create --config ./my-config.json --title "覆盖标题"
 **快速创建（仅基础选项）：**
 
 ```bash
-miaoying create --title "活动标题" --desc "描述" --qrcode
+node ./bin/miaoying.js create --title "活动标题" --desc "描述" --qrcode
 ```
 
 **高级创建（使用配置文件）：**
 
 ```bash
-miaoying create --config ./config.json --qrcode
+node ./bin/miaoying.js create --config ./config.json --qrcode
 ```
 
 **配置文件模板生成：**
@@ -515,13 +518,13 @@ cat > my-activity.json << 'EOF'
 EOF
 
 # 使用配置文件创建
-miaoying create --config my-activity.json --qrcode
+node ./bin/miaoying.js create --config my-activity.json --qrcode
 ```
 
 **1. 创建统计/打卡/接龙**
 
 ```bash
-miaoying create [options]
+node ./bin/miaoying.js create [options]
 ```
 
 选项:
@@ -539,7 +542,7 @@ miaoying create [options]
 **2. 更新统计**
 
 ```bash
-miaoying update [options]
+node ./bin/miaoying.js update [options]
 ```
 
 选项:
@@ -569,14 +572,14 @@ miaoying update [options]
 
 使用配置文件更新：
 ```bash
-miaoying update --config ./update-config.json
+node ./bin/miaoying.js update --config ./update-config.json
 ```
 
 **3. 创建预约**
 
 ```bash
-miaoying book [options]
-miaoying booking [options]
+node ./bin/miaoying.js book [options]
+node ./bin/miaoying.js booking [options]
 ```
 
 选项:
@@ -591,8 +594,8 @@ miaoying booking [options]
 **3. 创建考试**
 
 ```bash
-miaoying exam [options]
-miaoying create-exam [options]
+node ./bin/miaoying.js exam [options]
+node ./bin/miaoying.js create-exam [options]
 ```
 
 选项:
@@ -609,8 +612,8 @@ miaoying create-exam [options]
 **4. 创建投票**
 
 ```bash
-miaoying vote [options]
-miaoying create-vote [options]
+node ./bin/miaoying.js vote [options]
+node ./bin/miaoying.js create-vote [options]
 ```
 
 选项:
@@ -626,15 +629,15 @@ miaoying create-vote [options]
 **5. 获取列表**
 
 ```bash
-miaoying list [options]              # 统计列表
-miaoying vote-list [options]          # 投票列表
-miaoying chacha-list [options]         # 查查列表
+node ./bin/miaoying.js list [options]              # 统计列表
+node ./bin/miaoying.js vote-list [options]          # 投票列表
+node ./bin/miaoying.js chacha-list [options]         # 查查列表
 ```
 
 **6. 生成二维码**
 
 ```bash
-miaoying qrcode <tongji-id> [options]
+node ./bin/miaoying.js qrcode <tongji-id> [options]
 ```
 
 选项:
@@ -645,7 +648,7 @@ miaoying qrcode <tongji-id> [options]
 **3. 获取统计列表**
 
 ```bash
-miaoying list [options]
+node ./bin/miaoying.js list [options]
 ```
 
 选项:
@@ -659,7 +662,7 @@ miaoying list [options]
 **4. 生成二维码**
 
 ```bash
-miaoying qrcode <tongji-id> [options]
+node ./bin/miaoying.js qrcode <tongji-id> [options]
 ```
 
 选项:
@@ -670,10 +673,10 @@ miaoying qrcode <tongji-id> [options]
 **5. 其他命令**
 
 ```bash
-miaoying totals <tongji-id>     # 获取报名总数
-miaoying results <tongji-id>    # 获取报名结果
-miaoying upload <file-path>     # 上传文件到 OSS
-miaoying help                    # 显示帮助
+node ./bin/miaoying.js totals <tongji-id>     # 获取报名总数
+node ./bin/miaoying.js results <tongji-id>    # 获取报名结果
+node ./bin/miaoying.js upload <file-path>     # 上传文件到 OSS
+node ./bin/miaoying.js help                    # 显示帮助
 ```
 
 ### 使用示例
@@ -681,10 +684,10 @@ miaoying help                    # 显示帮助
 ```bash
 # ========== 统计/打卡 ==========
 # 简单统计
-miaoying create --title "每日打卡" --qrcode
+node ./bin/miaoying.js create --title "每日打卡" --qrcode
 
 # 带表单的统计
-miaoying create --title "活动报名" \
+node ./bin/miaoying.js create --title "活动报名" \
   --desc "请填写报名信息" \
   --info-forms '[{"type":"0","title":"姓名","required":true},{"type":"11","title":"手机号","required":true}]' \
   --count 50 \
@@ -692,37 +695,37 @@ miaoying create --title "活动报名" \
 
 # ========== 预约 ==========
 # 创建全天预约（7:00-23:59）
-miaoying book --title "图书馆座位预约" --slots 1 --count 50 --qrcode
+node ./bin/miaoying.js book --title "图书馆座位预约" --slots 1 --count 50 --qrcode
 
 # 创建分时段预约（上午 + 下午）
-miaoying book --title "会议室预约" --slots 2 --count 5 --qrcode
+node ./bin/miaoying.js book --title "会议室预约" --slots 2 --count 5 --qrcode
 
 # 创建固定名单预约
-miaoying book --title "设备借用" --fixed-no --no-name "工号" --qrcode
+node ./bin/miaoying.js book --title "设备借用" --fixed-no --no-name "工号" --qrcode
 
 # ========== 考试 ==========
 # 创建简单考试
-miaoying exam --title "期中考试" --duration 90 --qrcode
+node ./bin/miaoying.js exam --title "期中考试" --duration 90 --qrcode
 
 # 创建考试 + 题目
-miaoying exam --title "数学测验" --duration 60 \
+node ./bin/miaoying.js exam --title "数学测验" --duration 60 \
   --questions '[{"id":"q1","type":"1","title":"1+1=?","options":["1","2","3","4"],"answer":"1","fullScore":10,"order":1}]' \
   --qrcode
 
 # ========== 投票 ==========
 # 创建单选投票
-miaoying vote --title "班干部选举" --single --qrcode
+node ./bin/miaoying.js vote --title "班干部选举" --single --qrcode
 
 # ========== 查询 ==========
 # 生成指定路径的二维码
-miaoying qrcode 69bd03b77dd11cb3b00424a6 --output ./myqrcode.png
+node ./bin/miaoying.js qrcode 69bd03b77dd11cb3b00424a6 --output ./myqrcode.png
 
 # 获取统计列表
-miaoying list --limit 10
+node ./bin/miaoying.js list --limit 10
 
 # 搜索统计（关键词匹配）
-miaoying list --search "打卡"
-miaoying list --_search "活动报名"
+node ./bin/miaoying.js list --search "打卡"
+node ./bin/miaoying.js list --_search "活动报名"
 ```
 
 ### CLI 输出示例
@@ -836,31 +839,31 @@ miaoying list --_search "活动报名"
 ### 查询统计详情
 
 ```bash
-miaoying get <tongji-id>
+node ./bin/miaoying.js get <tongji-id>
 ```
 
 ### 查询统计列表
 
 ```bash
 # 获取统计列表
-miaoying list
+node ./bin/miaoying.js list
 
 # 分页
-miaoying list --limit 10 --skip 0
+node ./bin/miaoying.js list --limit 10 --skip 0
 
 # 关键词搜索
-miaoying list --search "打卡"
+node ./bin/miaoying.js list --search "打卡"
 ```
 
 ### 查询报名数据
 
 ```bash
 # 报名总数
-miaoying totals <tongji-id>
+node ./bin/miaoying.js totals <tongji-id>
 
 # 报名结果
-miaoying results <tongji-id>
-miaoying results <tongji-id> --limit 20 --skip 0
+node ./bin/miaoying.js results <tongji-id>
+node ./bin/miaoying.js results <tongji-id> --limit 20 --skip 0
 ```
 
 ## 导出数据 (Exporting Data)
@@ -869,16 +872,16 @@ miaoying results <tongji-id> --limit 20 --skip 0
 
 ```bash
 # 导出统计报名数据
-miaoying export <tongji-id> --type tongji
+node ./bin/miaoying.js export <tongji-id> --type tongji
 
 # 导出预约数据
-miaoying export <booking-id> --type booking
+node ./bin/miaoying.js export <booking-id> --type booking
 
 # 导出投票数据
-miaoying export <toupiao-id> --type toupiao
+node ./bin/miaoying.js export <toupiao-id> --type toupiao
 
 # 导出查查数据
-miaoying export <chacha-id> --type chacha
+node ./bin/miaoying.js export <chacha-id> --type chacha
 ```
 
 ### 导出选项
@@ -896,10 +899,10 @@ miaoying export <chacha-id> --type chacha
 
 ```bash
 # 首次导出后，后续可使用增量模式
-miaoying export <tongji-id> --type tongji --incremental
+node ./bin/miaoying.js export <tongji-id> --type tongji --incremental
 
 # 强制全量导出
-miaoying export <tongji-id> --type tongji --force
+node ./bin/miaoying.js export <tongji-id> --type tongji --force
 ```
 
 ## 文件上传 (File Upload)
@@ -909,17 +912,17 @@ miaoying export <tongji-id> --type tongji --force
 ### 上传文件
 
 ```bash
-miaoying upload <file-path> [options]
+node ./bin/miaoying.js upload <file-path> [options]
 ```
 
 **示例：**
 
 ```bash
 # 上传图片
-miaoying upload ./photo.jpg
+node ./bin/miaoying.js upload ./photo.jpg
 
 # 上传文件
-miaoying upload /path/to/document.pdf
+node ./bin/miaoying.js upload /path/to/document.pdf
 ```
 
 ### 上传成功后的输出

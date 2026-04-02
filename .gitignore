@@ -1,2 +1,4 @@
 .Ds_store
 tests
+node_modules
+package-lock.json
