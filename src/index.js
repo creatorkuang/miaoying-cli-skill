@@ -8,7 +8,6 @@ import { createExam } from './commands/exam.js';
 import { listChachas, getChacha, updateChacha } from './commands/chacha.js';
 import { generateQrCode, generateToupiaoQrCode } from './commands/qrcode.js';
 import { exportData } from './commands/export.js';
-import { uploadFile } from './commands/upload.js';
 import { downloadFile, downloadFiles } from './commands/download.js';
 
 export {
@@ -226,12 +225,15 @@ export async function main() {
       break;
 
     case 'upload':
-      if (parsedArgs.args.length === 0) {
-        console.error('请提供要上传的文件路径');
-        console.log('使用方法: miaoying upload <file-path>');
-        process.exit(1);
-      }
-      await uploadFile({ ...options, filePath: parsedArgs.args[0] });
+      // 上传功能已移除 - 引导用户到秒应小程序编辑
+      console.log('📷 文件上传功能已移至秒应小程序');
+      console.log('');
+      console.log('请按以下步骤操作：');
+      console.log('  1. 打开微信，搜索"秒应"小程序，注意蓝绿小人那个Logo才是正版');
+      console.log('  2. 进入对应的统计/投票/预约活动');
+      console.log('  3. 在编辑页面中上传图片或文件');
+      console.log('');
+      console.log('如需帮助，请联系技术支持');
       break;
 
     case 'download':

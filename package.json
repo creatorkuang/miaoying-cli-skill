@@ -1,6 +1,6 @@
 {
   "name": "@miaoying-ai/miaoying-cli",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "秒应 CLI 工具 - 创建统计、投票、预约、考试、查查并导出数据",
   "main": "src/index.js",
   "bin": {
