@@ -1,6 +1,6 @@
 {
   "name": "@miaoying-ai/miaoying-cli",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "秒应 CLI 工具 - 创建统计、投票、预约、考试、查查并导出数据",
   "main": "src/index.js",
   "bin": {
@@ -8,7 +8,8 @@
   },
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "pack": "cd .. && zip -r miaoying-cli-$npm_package_version.zip miaoying -x 'miaoying/node_modules/*' -x 'miaoying/package-lock.json' -x 'miaoying/README.md' -x 'miaoying/LICENSE' -x 'miaoying/.git/*' -x 'miaoying/.gitignore' -x 'miaoying/.DS_Store' -x 'miaoying/*.zip' && echo \"✓ 打包完成: miaoying-cli-$npm_package_version.zip\""
   },
   "keywords": [
     "miaoying",
