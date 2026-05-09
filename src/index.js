@@ -9,6 +9,7 @@ import { listChachas, getChacha, updateChacha } from './commands/chacha.js';
 import { generateQrCode, generateToupiaoQrCode } from './commands/qrcode.js';
 import { exportData } from './commands/export.js';
 import { downloadFile, downloadFiles } from './commands/download.js';
+import { login, logout } from './commands/login.js';
 
 export {
   parseArgs,
@@ -33,7 +34,9 @@ export {
   generateToupiaoQrCode,
   exportData,
   downloadFile,
-  downloadFiles
+  downloadFiles,
+  login,
+  logout
 };
 
 export async function main() {
@@ -234,6 +237,14 @@ export async function main() {
       console.log('  3. 在编辑页面中上传图片或文件');
       console.log('');
       console.log('如需帮助，请联系技术支持');
+      break;
+
+    case 'login':
+      await login(options);
+      break;
+
+    case 'logout':
+      await logout();
       break;
 
     case 'download':

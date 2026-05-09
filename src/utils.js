@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import https from 'https';
+import os from 'os';
 
 const colors = {
   reset: '\x1b[0m',
@@ -117,15 +118,23 @@ export function mergeOptions(cliOptions, configOptions) {
 }
 
 export function getApiKey(providedKey) {
-  const key = providedKey || process.env.MIAOYING_API_KEY;
-  if (!key) {
-    error('未找到 MIAOYING_API_KEY 环境变量或 --api-key 参数');
-    info('请访问 https://miaoying.hui51.cn/apikey 创建 API 密钥');
-    info('然后设置环境变量: export MIAOYING_API_KEY="your_key_here"');
-    info('或者使用参数: --api-key="your_key_here"');
-    process.exit(1);
+  const envKey = providedKey || process.env.MIAOYING_API_KEY;
+  if (envKey) return envKey;
+
+  // Fall back to ~/.miaoying/config.json
+  const configPath = path.join(os.homedir(), '.miaoying', 'config.json');
+  if (fs.existsSync(configPath)) {
+    try {
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+      if (config.apiKey) return config.apiKey;
+    } catch {
+      // Config file exists but is unreadable — proceed to error
+    }
   }
-  return key;
+
+  error('未找到 MIAOYING_API_KEY');
+  info('请运行 "miaoying login" 进行微信扫码登录');
+  process.exit(1);
 }
 
 export function httpsRequest(options, data) {
@@ -158,11 +167,12 @@ export const API_HOST = 'www.aiphoto8.cn';
 
 /**
  * Allowed domains for OSS downloads (SSRF protection)
+ * Only these domains are allowed for file downloads to prevent SSRF attacks.
+ * All domains are lowercase and do not include trailing dots.
  */
 const ALLOWED_OSS_DOMAINS = [
   'cdn.hui51.cn',
-  'hui51.oss-cn-beijing.aliyuncs.com',
-  'hui51.oss-cn-beijing.aliyuncs.com.'
+  'hui51.oss-cn-beijing.aliyuncs.com'
 ];
 
 /**
@@ -204,9 +214,17 @@ export function validateDownloadUrl(url) {
   }
 
   // Validate domain against allowlist
+  // Must match exactly or be a subdomain of an allowed domain
   const hostname = parsedUrl.hostname.toLowerCase();
   const isAllowed = ALLOWED_OSS_DOMAINS.some(allowed => {
-    return hostname === allowed || hostname.endsWith('.' + allowed);
+    // Exact match
+    if (hostname === allowed) {
+      return true;
+    }
+    // Subdomain match: hostname must end with .allowed (not just contain it)
+    // This prevents evil-cdn.hui51.cn from matching cdn.hui51.cn
+    const suffix = '.' + allowed;
+    return hostname.endsWith(suffix);
   });
 
   if (!isAllowed) {
@@ -253,7 +271,9 @@ export function resolveOssPath(rawPath, useThumbnail = true) {
       const url = new URL(rawPath);
       const hostname = url.hostname.toLowerCase();
       const isAllowed = ALLOWED_OSS_DOMAINS.some(allowed => {
-        return hostname === allowed || hostname.endsWith('.' + allowed);
+        if (hostname === allowed) return true;
+        const suffix = '.' + allowed;
+        return hostname.endsWith(suffix);
       });
       if (!isAllowed) {
         warn(`Warning: URL domain ${hostname} is not in allowlist`);
@@ -843,10 +863,11 @@ ${colors.bright}使用方法:${colors.reset}
    miaoying chacha-get <chacha-id>        获取查查详情
    miaoying update-chacha [options]        更新查查
    miaoying export <activity-id> --type <type>  导出数据
-   miaoying upload <file-path>             上传文件到 OSS
    miaoying download <file-url>            下载 OSS 缩略图文件
    miaoying download <file-url> --original 下载 OSS 原图文件
    miaoying download <file-url> --entity <type> --verbose 下载并显示详细信息
+   miaoying login                            微信扫码获取 API Key
+   miaoying logout                           禁用当前 Key 并登出
    miaoying help                           显示帮助
 
 ${colors.bright}创建统计选项:${colors.reset}
@@ -940,9 +961,6 @@ ${colors.bright}导出数据选项:${colors.reset}
   --incremental/-i        增量导出模式
   --force/-f              强制全量导出
 
-${colors.bright}上传文件选项:${colors.reset}
-  --file <路径>           要上传的文件路径
-
 ${colors.bright}获取统计/投票/预约列表选项:${colors.reset}
   --limit <数量>          返回数量 (默认 50)
   --skip <数量>           跳过数量 (分页)
@@ -980,6 +998,7 @@ ${colors.bright}示例:${colors.reset}
   miaoying export <activity-id> --type tongji --incremental
 
 ${colors.bright}获取 API Key:${colors.reset}
-  访问 https://miaoying.hui51.cn/apikey 创建密钥
+  首次使用时 AI 自动弹出二维码引导扫码获取
+  如 Key 泄露，AI 会自动调用禁用接口并引导重新扫码
 `);
 }

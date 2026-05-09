@@ -8,19 +8,8 @@
 
 **本技能需要秒应 API Key 才能使用。**
 
-- **获取方式**：[API Key 管理页面](https://miaoying.hui51.cn/apikey)
-- **存储方式**：推荐使用环境变量 `MIAOYING_API_KEY`
-
-### 域名说明
-
-秒应服务使用多个域名，各司其职：
-
-| 域名 | 用途 | 说明 |
-|------|------|------|
-| `miaoying.hui51.cn` | 用户管理后台 | API Key 管理、账户设置 |
-| `www.aiphoto8.cn` | API 服务器 | 实际的 API 调用端点 |
-
-这是正常的多域名架构，管理后台和 API 服务分离。
+- **获取方式**：首次使用时，AI 会通过微信扫码自动获取并保存，无需手动操作
+- **存储方式**：自动保存到 `~/.miaoying/config.json`
 
 ### 安全最佳实践
 
@@ -35,19 +24,33 @@
 
 - Node.js >= 16.0.0
 - npm
-- 秒应 API Key（从 [API Key 管理页面](https://miaoying.hui51.cn/apikey) 获取）
+- 秒应 API Key（首次使用时 AI 会通过微信扫码自动获取，无需手动配置）
 
 ### 安装步骤
 
-#### 1. 安装 CLI 工具
+本技能自带完整 CLI 源码，无需安装 npm 包。只需安装依赖后即可使用：
 
 ```bash
-npm install -g @miaoying-ai/miaoying-cli
+# 进入技能目录
+cd /path/to/miaoying-skill
+
+# 安装依赖（首次使用）
+npm install
 ```
 
-#### 2. 配置 API Key
+### 扫码登录（首次使用）
 
-**方式一：环境变量（推荐）**
+```bash
+# 交互式扫码登录
+node ./bin/miaoying.js login
+
+# 指定二维码保存路径
+node ./bin/miaoying.js login --output ~/Desktop/miaoying_qr.png
+```
+
+登录成功后，API Key 会自动保存到 `~/.miaoying/config.json`，后续使用无需再次登录。
+
+**手动配置 API Key（可选）**
 
 ```bash
 export MIAOYING_API_KEY="your_api_key_here"
@@ -57,48 +60,38 @@ echo 'export MIAOYING_API_KEY="your_api_key_here"' >> ~/.zshrc  # zsh
 echo 'export MIAOYING_API_KEY="your_api_key_here"' >> ~/.bashrc # bash
 ```
 
-**方式二：配置文件**
+**手动配置 API Key（可选）**
 
-创建 `~/.miaoying/config.json`：
-
-```json
-{
-  "apiKey": "your_api_key_here"
-}
-```
-
-#### 3. 验证安装
-
-```bash
-miaoying help
-```
+**方式一：环境变量**
 
 ### ✅ 安装检查清单
 
 在首次使用前，请确认：
 
-- [ ] 已从官方渠道 [miaoying.hui51.cn/apikey](https://miaoying.hui51.cn/apikey) 获取 API Key
-- [ ] 已验证 npm 包 `@miaoying-ai/miaoying-cli` 的来源
-- [ ] 已使用环境变量存储 API Key（而非直接粘贴）
-- [ ] 了解本技能会访问 `~/.miaoying/config.json` 和 `./qrcodes/` 目录
+- [ ] 已安装 Node.js 和 npm
+- [ ] 已在技能目录运行 `npm install` 安装依赖
+- [ ] 已运行 `node ./bin/miaoying.js login` 完成扫码登录
 - [ ] 了解 API 调用会发送到 `www.aiphoto8.cn`
 
 ### 快速开始
 
 ```bash
+# 扫码登录（首次使用）
+node ./bin/miaoying.js login
+
 # 创建打卡活动并生成二维码
-miaoying create --title "每日打卡" --qrcode
+node ./bin/miaoying.js create --title "每日打卡" --qrcode
 
 # 创建带表单的报名
-miaoying create --title "活动报名" \
+node ./bin/miaoying.js create --title "活动报名" \
   --info-forms '[{"type":"0","title":"姓名","required":true}]' \
   --qrcode
 
 # 创建预约
-miaoying book --title "会议室预约" --slots 2 --count 10 --qrcode
+node ./bin/miaoying.js book --title "会议室预约" --slots 2 --count 10 --qrcode
 
 # 创建考试
-miaoying exam --title "期中考试" --duration 90 --qrcode
+node ./bin/miaoying.js exam --title "期中考试" --duration 90 --qrcode
 ```
 
 ## 作为 AI Agent Skill 使用
@@ -172,24 +165,12 @@ cp -r . ~/.<agent-name>/skills/miaoying
 ## 获取帮助
 
 - **微信客服**：搜索「秒应服务」关注后联系
-- **API Key 管理**：https://miaoying.hui51.cn/apikey
 
 ## 常见问题 (FAQ)
 
-### Q: 为什么有两个不同的域名？
-
-**A:** `miaoying.hui51.cn` 是用户管理后台，用于获取 API Key 和管理账户；`www.aiphoto8.cn` 是 API 服务器，用于实际的 API 调用。这是常见的微服务架构设计，管理后台和 API 服务分离部署。
-
 ### Q: API Key 泄露了怎么办？
 
-**A:** 立即登录 [API Key 管理页面](https://miaoying.hui51.cn/apikey) 删除泄露的 Key，然后创建新的 Key。建议使用环境变量存储，避免在聊天中直接粘贴。
-
-### Q: 如何验证 npm 包是官方的？
-
-**A:** 运行 `npm view @miaoying-ai/miaoying-cli` 查看包信息，确认：
-- 包名正确
-- 仓库地址指向官方 GitHub
-- 维护者是秒应团队
+**A:** 在 `~/.miaoying/config.json` 中删除旧的 apiKey，然后重新运行 `node ./bin/miaoying.js login` 获取新的 Key。
 
 ### Q: 本地存储的配置文件安全吗？
 
